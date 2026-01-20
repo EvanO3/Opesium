@@ -10,8 +10,9 @@ const supabaseKey : string | undefined  = process.env.SUPABASE_KEY;
 
 
 const app: Application = express();
+/** Store port number in process .env don't explicitly have it out */
+const PORT : number  = parseInt(process.env.PORT_NUMBER || "3000", 10)
 
-const PORT :number = 3000
 
 app.get("/", (req: Request, res: Response)=>{
     res.json({message:"Typescript node is working"})
