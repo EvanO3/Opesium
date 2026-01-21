@@ -1,4 +1,4 @@
-import { getAllUsers } from "./Models/User.ts";
+import { createUser, getAllUsers } from "./Models/User";
 
 async function test() {
   try {
@@ -9,4 +9,8 @@ async function test() {
   }
 }
 
+async function test2() {
+  const test = await createUser("t", "DASADASDASDD", "ASDAdsD");
+}
 test();
+test2();

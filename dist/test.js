@@ -1,4 +1,4 @@
-import { getAllUsers } from "./Models/User";
+import { createUser, getAllUsers } from "./Models/User";
 async function test() {
     try {
         const users = await getAllUsers();
@@ -8,4 +8,8 @@ async function test() {
         console.error("Error fetching users:", err.message);
     }
 }
+async function test2() {
+    const test = await createUser("t", "DASADASDASDD", "ASDAdsD");
+}
 test();
+test2();
