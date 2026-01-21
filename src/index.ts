@@ -1,6 +1,7 @@
 import express, {Application, Request, Response} from "express"
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import AuthRouter from "./Routes/AuthRouter"
 dotenv.config();
 
 const supabaseUrl :string | undefined = process.env.SUPABASE_URL;
@@ -13,10 +14,13 @@ const app: Application = express();
 /** Store port number in process .env don't explicitly have it out */
 const PORT : number  = parseInt(process.env.PORT_NUMBER || "3000", 10)
 
+app.use(express.json())
 
 app.get("/", (req: Request, res: Response)=>{
     res.json({message:"Typescript node is working"})
 });
+
+app.use("/api/v1", AuthRouter.router)
 
 /*Function to test DB connection */
 
@@ -40,6 +44,7 @@ which allowed me to call the rpc function called hello_world
             if(supabaseUrl !==undefined && supabaseKey !== undefined){
              const supabase = createClient(supabaseUrl, supabaseKey);
             const {data,  error} = await supabase.rpc("hello_world");
+       
     
             if(error){
                 console.log("Error connecting to the database: ", error);
