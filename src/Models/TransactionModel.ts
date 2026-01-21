@@ -1,4 +1,3 @@
-
 import { supabase } from "../Config/supabaseClient.ts";
 
 export async function addTransaction(
@@ -13,18 +12,33 @@ export async function addTransaction(
     .eq("name", categoryName)
     .single();
 
-  if (categoryError) return { error: "Category not found" };
+  if (categoryData) {
+    console.log("Found");
+  }
+  
+  if (categoryError) {
+    console.log(categoryError);
+    return { error: "Category not found" };
+  }
+  const amountNumber = Number(amount);
 
   const { data, error } = await supabase.from("Transaction").insert([
     {
       user_id,
+      amount: amountNumber,
       category_id: categoryData.id,
-      amount,
       description,
       date: new Date(),
       created_at: new Date(),
     },
   ]);
+  console.log(categoryData.id);
+  console.log(data);
+
+  if (error) {
+    console.log(error);
+    return { error: "Error inserting data" };
+  }
 
   return data;
 }
