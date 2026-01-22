@@ -78,4 +78,13 @@ async function login({email, password}: AuthUser):Promise<string>{
 
 }
 
-export {CreateUser, login}
+
+async function SignOut(): Promise<String>{
+ 
+    const {error} = await supabase.auth.signOut();
+    if(error){
+        throw new Error("Error has occurred signing out the user")
+    }
+    return "Sign out Successful"
+}
+export {CreateUser, login, SignOut}
