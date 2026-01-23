@@ -1,7 +1,6 @@
 import { supabase } from "../Config/supabaseClient.ts";
 
 export async function addTransaction(
-  user_id: string,
   categoryName: string,
   amount: Number,
   description: string,
@@ -15,7 +14,7 @@ export async function addTransaction(
   if (categoryData) {
     console.log("Found");
   }
-  
+
   if (categoryError) {
     console.log(categoryError);
     return { error: "Category not found" };
@@ -24,7 +23,6 @@ export async function addTransaction(
 
   const { data, error } = await supabase.from("Transaction").insert([
     {
-      user_id,
       amount: amountNumber,
       category_id: categoryData.id,
       description,
