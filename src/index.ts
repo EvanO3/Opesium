@@ -2,6 +2,7 @@ import express, { Application, Request, Response } from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
 import AuthRouter from "./Routes/AuthRouter"
+import TransactionRouter from "./Routes/TransactionRouter";
 dotenv.config();
 
 const supabaseUrl: string | undefined = process.env.SUPABASE_URL;
@@ -15,22 +16,10 @@ app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Typescript node is working" });
 });
 
+app.use(express.json())
 app.use("/api/v1", AuthRouter.router)
+app.use("/api/v1", TransactionRouter.router)
 
-/*Function to test DB connection */
-
-/**Note used this in the supabase sql console
- * 
- * 
- * CREATE OR REPLACE FUNCTION hello_world()
-RETURNS TEXT AS $$
-BEGIN
-  RETURN 'Connection successful';
-END;
-$$ LANGUAGE plpgsql;
-
-which allowed me to call the rpc function called hello_world
- */
 async function testDBConnection(): Promise<boolean> {
   try {
     if (supabaseUrl !== undefined && supabaseKey !== undefined) {
