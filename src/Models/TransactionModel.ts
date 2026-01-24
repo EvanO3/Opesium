@@ -1,6 +1,6 @@
 interface Transaction {
   categoryName: string,
-  amount: Number,
+  amount: number,
   description: string
 }
 
