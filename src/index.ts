@@ -1,6 +1,7 @@
 import express, { Application, Request, Response } from "express";
 import { createClient } from "@supabase/supabase-js";
 import dotenv from "dotenv";
+import AuthRouter from "./Routes/AuthRouter"
 dotenv.config();
 
 const supabaseUrl: string | undefined = process.env.SUPABASE_URL;
@@ -13,6 +14,8 @@ const PORT: number = parseInt(process.env.PORT_NUMBER || "3000", 10);
 app.get("/", (req: Request, res: Response) => {
   res.json({ message: "Typescript node is working" });
 });
+
+app.use("/api/v1", AuthRouter.router)
 
 /*Function to test DB connection */
 
