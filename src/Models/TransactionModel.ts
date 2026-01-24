@@ -1,4 +1,4 @@
-import { supabase } from "../Config/supabaseClient.ts";
+import supabase  from "../DbConfig/db.ts";
 
 export async function addTransaction(
   categoryName: string,
