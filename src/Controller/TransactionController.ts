@@ -16,7 +16,7 @@ export const CreateTransaction = async (req: Request, res: Response) => {
             return res.status(401).json({message:"Unauthorized"});
         }
 
-    await addTransaction(categoryName, amount, description, userJwt);
+    await addTransaction({categoryName, amount, description}, userJwt);
     
     return res.status(201).json({ message: "successful transaction" });
   } catch (error) {
