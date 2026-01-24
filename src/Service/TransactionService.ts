@@ -13,7 +13,7 @@ import{DatabaseError} from "../Exceptions/DatabaseError.ts"
  * 
  * 
  */
- async function addTransaction(categoryName: string,amount: number,description: string,  jwt:string) {
+ async function addTransaction({categoryName ,amount ,description} :Transaction,  jwt:string) {
 
     /**No need to check if the transaction is there as duplicate transaction should be allowed
      * Id is auto gen so it will never be the same
