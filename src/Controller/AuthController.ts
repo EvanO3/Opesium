@@ -1,23 +1,11 @@
 import { CreateUser, login, SignOut } from "../Service/AuthService";
 import verifyProjectJwt from "../Middleware/Jwt"
 import {NextFunction, Request, Response} from "express"
-
+import  getErrorMessage from "../Config/ErrorMessage";
+import {AuthenticationError} from "../Exceptions/AuthenticationError"
+import { ValidationError } from "../Exceptions/ValidationError";
+import { DatabaseError } from "../Exceptions/DatabaseError";
 /**Helper function for catch block */
-
-function getErrorMessage(error : unknown): string{
-    if (error instanceof Error){
-        return error.message
-    }
-
-    if(typeof error === 'string'){
-        return error
-    }
-
-    /*fall back if none of the match's checkout*/
-
-    return "An unexpected Error occured"
-}   
-
 
 
 
@@ -31,9 +19,15 @@ const UserCreation = async (req: Request, res:Response) =>{
     return res.status(201).json({message:userInfo});
 
     }catch(error){
-    console.log("This is the error point ", error);
-    const errorMessage = getErrorMessage(error);
-     return  res.status(400).json({error:"Error occured: " + errorMessage} )
+        if(error instanceof ValidationError){
+            return res.status(400).json({error: error.message})
+        }
+        else if(error instanceof DatabaseError){
+            return res.status(500).json({error: error.message})
+
+        }
+
+     return  res.status(400).json({error:"Error Internal Server Error: "} )
         
     }
 } 
@@ -49,9 +43,16 @@ const LoginUser = async (req: Request, res: Response)=>{
         return res.status(200).json({token:userToken})
 
     }catch(error){
+
+        if(error instanceof DatabaseError){
+              return res.status(500).json({error:error.message})
+        }else if(error instanceof ValidationError){
+             return res.status(400).json({error:error.message})
+
+        }
         console.log("An unexpected Error has occured " + error)
-        const errorMessage = getErrorMessage(error);
-        return res.status(401).json({error:"Incorrect Email or Password:  " , errorMessage})
+ 
+        return res.status(500).json({error:"Internal Server error"})
     }
 }
 
@@ -65,8 +66,10 @@ const SignOutUser = async (req: Request, res: Response)=>{
         return res.status(200).json({message:signOutMessage})
 
     }catch(error){
-        const errorMessage = getErrorMessage(error);
-        return res.status(400).json({message: "Failed to sign out user: " + errorMessage})
+        if(error instanceof DatabaseError){
+            return res.status(500).json({message: error.message})
+        }
+        return res.status(500).json({message: "Failed to sign out user: "})
     }
 }
 
