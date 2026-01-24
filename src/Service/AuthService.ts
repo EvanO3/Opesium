@@ -10,7 +10,14 @@ async function CreateUser( {name, email, password}: AuthUser): Promise<string> {
         throw new Error("Failed to retrieve user email, password or name");
      }
 
+     /**if the email is present reject the sign up request */
+     const {data, error} = await supabase.from("Users").select(email);
+     if(error){
+                throw new Error("User with this email already Exists");
+     }
+
      // Attempt to sign in user
+
      try{
          const {data, error} = await supabase.auth.signUp({
             email: email,
