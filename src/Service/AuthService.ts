@@ -1,19 +1,21 @@
 import AuthUser from "../Models/AuthUser";
-import supabase from "../DbConfig/db"
-
+import supabase from "../Config/db"
+import {AuthenticationError} from "../Exceptions/AuthenticationError"
+import { ValidationError } from "../Exceptions/ValidationError";
+import { DatabaseError } from "../Exceptions/DatabaseError";
 
 /*Async function that will create the user
 i.e Sign Up */
 
 async function CreateUser( {name, email, password}: AuthUser): Promise<string> {
      if(!email || !password || !name){
-        throw new Error("Failed to retrieve user email, password or name");
+        throw new ValidationError("Field is either missing or blank");
      }
 
      /**if the email is present reject the sign up request */
      const {data, error} = await supabase.from("Users").select(email);
      if(error){
-                throw new Error("User with this email already Exists");
+                throw new DatabaseError("User with this email already Exists");
      }
 
      // Attempt to sign in user
@@ -25,8 +27,8 @@ async function CreateUser( {name, email, password}: AuthUser): Promise<string> {
          });
     
          if(error){
-             console.log(error)
-             throw Error("Error has occurred trying to sign up user: " + error.message)
+             console.error(error)
+             throw new DatabaseError("Error has occurred trying to sign up user: " + error.message)
          }
 
          /*If code gets to this point, it means the signup was successful so add user to table */
@@ -39,11 +41,11 @@ async function CreateUser( {name, email, password}: AuthUser): Promise<string> {
          if(dbError){
             console.error("Db Error has occurred " + dbError)
       
-             throw new Error("Database Error has occurred failed to sign up user: " + dbError.message)
+             throw new DatabaseError("Database Error has occurred failed to sign up user: " + dbError.message)
          }
 
          }else{
-                throw new Error("Failed to retrieve userId from auth user")
+                throw new DatabaseError("Failed to retrieve userId from auth user")
          }
          /*return something more valuable */ 
          return "Created User successfully"
@@ -66,14 +68,14 @@ async function CreateUser( {name, email, password}: AuthUser): Promise<string> {
  */
 async function login({email, password}: AuthUser):Promise<string>{
  if(!email || !password ){
-        throw new Error("Failed to retrieve user email or password");
+        throw new ValidationError("Failed to retrieve user email or password");
      }
     
      const {data, error} = await supabase.auth.signInWithPassword({email:email, password:password});
      if(error){
         console.log("Error has occurred on login " + error.message)
        
-        throw new Error("An error has occured during the login: " + error.message)
+        throw new DatabaseError("An error has occured during the login: " + error.message)
      }
 
      const accessToken: string = data?.session.access_token;
@@ -90,7 +92,7 @@ async function SignOut(): Promise<String>{
  
     const {error} = await supabase.auth.signOut();
     if(error){
-        throw new Error("Error has occurred signing out the user")
+        throw new DatabaseError("Error has occurred signing out the user")
     }
     return "Sign out Successful"
 }
