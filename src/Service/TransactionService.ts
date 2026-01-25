@@ -35,11 +35,14 @@ import{DatabaseError} from "../Exceptions/DatabaseError.ts"
     
     const {data:userIdentity, error: userIdentityError} = await supabase.auth.getUser(jwt);
 
+    
+    if(userIdentityError){
+        throw new DatabaseError("Failed to retrieve UserId from JWT")
+    }
 
     /**Now that the userId is here we can make  */
     const authId = userIdentity.user?.id
     
-
     const {data: userIdData, error: userIdError} = await supabase.from("Users").select("id").eq("auth_Id", authId).single();
 
     
@@ -95,14 +98,40 @@ import{DatabaseError} from "../Exceptions/DatabaseError.ts"
 }
 
 
-// async function getAllTransactions(jwt: string) {
-//     const {data, error} = supabase.auth.getUser(jwt);
-//     if(error){
-//         throw new DatabaseError("Failed to find authenticated user")
-//     }
-// }
+/**Future todo, add pagination */
+
+
+async function getAllTransactions(jwt: string) {
+    const {data, error} = await supabase.auth.getUser(jwt);
+    if(error){
+        throw new DatabaseError("Failed to find authenticated user")
+    }
+
+    const authId = data?.user?.id;
+
+    if(!authId){
+        throw new DatabaseError("Failed to retrieve userId")
+    }
+    
+    const {data:userData, error: userError} = await supabase.from("Users").select("id").eq("auth_Id" ,authId).single();
+    if(userError){
+       throw new DatabaseError("Failed to retrieve userId")
+    }
+
+    const userId = userData.id
+
+    const {data: transactionData, error:transactionError} = await supabase.from("Transaction").select("*").eq("user_id", userId )
+
+    if(transactionError){
+        throw new DatabaseError("Failed to retrieve transaction data" + transactionError.message )
+    }
+
+    return transactionData;
+
+
+}
 
 
 
 
-export default addTransaction
+export { addTransaction , getAllTransactions}
