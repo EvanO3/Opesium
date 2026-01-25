@@ -141,8 +141,8 @@ async function getAllTransactions(jwt: string) {
 async function updateTransaction(jwt:string, transactionId:string, categoryId:string, amount:number, description:string){
     const {data, error} = await supabase.auth.getUser(jwt);
 
-    if(!categoryId){
-        throw new ValidationError("Missing Category Id")
+    if(!categoryId && !transactionId){
+        throw new ValidationError("Missing Category or Transaction Id")
     }
 
     if(error){
@@ -180,4 +180,41 @@ async function updateTransaction(jwt:string, transactionId:string, categoryId:st
     
 }
 
-export { addTransaction , getAllTransactions, updateTransaction}
+
+/**TODO:
+ * Case when trying to delete something that isn't there */
+
+async function deleteTransaction(jwt:string, transactionId:string){
+
+    if(!transactionId){
+        throw new ValidationError("Failed to retrieve Transaction Id")
+    }
+
+    const {data:{user}} = await supabase.auth.getUser(jwt);
+
+    
+
+    /*Auth user id*/
+    const authUserId = user?.id;
+   
+    const {data:userIdData, error:userIdError} = await supabase.from('Users').select('id').eq('auth_Id', authUserId).single();
+   
+    if(userIdError){
+        throw new DatabaseError("Failed to retrieve userId");
+        
+    }
+
+
+
+  
+    const UserId = userIdData.id;
+
+    console.log("here")
+    const response = await supabase.from('Transaction').delete().match({id: transactionId, user_id: UserId})
+    
+    if(response.status !==204){
+        throw new DatabaseError("Failed to delete Transaction:  ")
+    } 
+}
+
+export { addTransaction , getAllTransactions, updateTransaction, deleteTransaction}
