@@ -1,4 +1,4 @@
-import addTransaction from "../Service/TransactionService";
+import {addTransaction, getAllTransactions} from "../Service/TransactionService";
 import express from "express";
 import type { Request, Response } from "express";
 import  getErrorMessage from "../Config/ErrorMessage";
@@ -38,3 +38,26 @@ export const CreateTransaction = async (req: Request, res: Response) => {
 
   }
 };
+
+
+
+export const RetrieveUsersTransactions = async(req: Request, res: Response) =>{
+    try{
+
+      const userJwt:string|undefined = req.headers['authorization']?.replace("Bearer ", "");
+       if(!userJwt){
+            return res.status(401).json({message:"Unauthorized"});
+        }
+
+      const transactionData = await getAllTransactions(userJwt);
+      return res.status(200).json({data:transactionData});
+    }catch(error){
+        if(error instanceof DatabaseError){
+          return res.status(500).json({error: error.message});
+        }
+        else {
+          res.status(500).json({error: "Internal Server Error"});
+        }
+    }
+
+}
