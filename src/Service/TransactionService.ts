@@ -1,7 +1,7 @@
 import supabase from "../Config/db.ts"
 import {ValidationError} from "../Exceptions/ValidationError.ts"
 import{DatabaseError} from "../Exceptions/DatabaseError.ts"
-import { UnathorizationError } from "../Exceptions/UnathorizationError.ts";
+import { UnathorizationError } from "../Exceptions/UnauthorizationError.ts";
 import { ResourceNotFound } from "../Exceptions/ResourceNotFound.ts";
 
 
