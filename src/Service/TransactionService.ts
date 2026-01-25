@@ -1,7 +1,8 @@
 import supabase from "../Config/db.ts"
 import {ValidationError} from "../Exceptions/ValidationError.ts"
 import{DatabaseError} from "../Exceptions/DatabaseError.ts"
-
+import { UnathorizationError } from "../Exceptions/UnathorizationError.ts";
+import { ResourceNotFound } from "../Exceptions/ResourceNotFound.ts";
 
 
 //TODO:
@@ -133,5 +134,50 @@ async function getAllTransactions(jwt: string) {
 
 
 
+/**Category Id must also be sent in payload to check if
+ * it exists
+*/
 
-export { addTransaction , getAllTransactions}
+async function updateTransaction(jwt:string, transactionId:string, categoryId:string, amount:number, description:string){
+    const {data, error} = await supabase.auth.getUser(jwt);
+
+    if(!categoryId){
+        throw new ValidationError("Missing Category Id")
+    }
+
+    if(error){
+        throw new DatabaseError("Failed to retrieve user from jwt")
+    }
+
+    /*Auth user id*/
+    const authUserId = data?.user.id;
+   
+    const {data:userIdData, error:userIdError} = await supabase.from('Users').select('id').eq('auth_Id', authUserId).single();
+   
+    if(userIdError){
+        throw new DatabaseError("Failed to retrieve userId");
+        
+    }
+
+
+
+  
+    const UserId = userIdData.id;
+
+    const {data:categoryInfo, error:categoryError} = await supabase.from("Category").select('*').eq('id',categoryId);
+
+    if(categoryError){
+        console.log(categoryError.message)
+        throw new ResourceNotFound("Category with Id is not found")
+    }
+
+    const{error:updateError} = await supabase.from('Transaction').update({category_id:categoryId, amount:amount, description:description}).match({id: transactionId, user_id: UserId})
+
+    if(updateError){
+        throw new UnathorizationError("Cannot edit this resource")
+    }
+
+    
+}
+
+export { addTransaction , getAllTransactions, updateTransaction}
