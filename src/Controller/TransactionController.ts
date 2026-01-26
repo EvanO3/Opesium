@@ -1,4 +1,4 @@
-import {addTransaction, getAllTransactions,updateTransaction, deleteTransaction} from "../Service/TransactionService";
+import {addTransaction, getAllTransactions,updateTransaction, deleteTransaction, weeklyTransactionsRetrieval} from "../Service/TransactionService";
 import express from "express";
 import type { Request, Response } from "express";
 import  getErrorMessage from "../Config/ErrorMessage";
@@ -12,13 +12,13 @@ import { ResourceNotFound } from "../Exceptions/ResourceNotFound";
  */
 export const CreateTransaction = async (req: Request, res: Response) => {
   try {
-    const { categoryName, amount, description } = req.body;
+    const { categoryName, amount, description,paymentMethod,paymentType,storeName } = req.body;
     const userJwt:string|undefined = req.headers['authorization']?.replace("Bearer ", "")
        if(!userJwt){
             return res.status(401).json({message:"Unauthorized"});
         }
 
-    await addTransaction({categoryName, amount, description}, userJwt);
+    await addTransaction({categoryName, amount, description, paymentMethod,paymentType,storeName}, userJwt);
     
     return res.status(201).json({ message: "successful transaction" });
   } catch (error) {
@@ -109,7 +109,6 @@ export const updateUserTransction = async (req: Request, res:Response)=>{
 export const deleteUsersTransaction = async (req: Request, res:Response)=>{
   try{
     const userJwt:string|undefined = req.headers['authorization']?.replace("Bearer ", "");
-    console.log(userJwt)
      if(!userJwt){
             return res.status(401).json({message:"Unauthorized"});
           }
@@ -124,6 +123,34 @@ export const deleteUsersTransaction = async (req: Request, res:Response)=>{
          await deleteTransaction(userJwt, stringTransactionId);
  
         return res.status(204).json({})
+
+  }catch(error){
+    if(error instanceof DatabaseError){
+      return res.status(500).json({error: error.message})
+    }else if(error instanceof ValidationError){
+      return res.status(400).json({error:error.message})
+    }else if(error instanceof ResourceNotFound){
+      return res.status(403).json({error: error.message})
+    }
+    else{
+      return res.status(500).json({error: "Internal Server Error"})
+    }
+  }
+}
+
+export const weeklyTransactions = async (req: Request, res:Response)=>{
+  try{
+    const userJwt:string|undefined = req.headers['authorization']?.replace("Bearer ", "");
+
+     if(!userJwt){
+            return res.status(401).json({message:"Unauthorized"});
+          }
+
+
+        
+         const data = await weeklyTransactionsRetrieval(userJwt)
+ 
+        return res.status(200).json({data})
 
   }catch(error){
     if(error instanceof DatabaseError){
