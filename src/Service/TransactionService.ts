@@ -5,23 +5,15 @@ import { UnathorizationError } from "../Exceptions/UnauthorizationError.ts";
 import { ResourceNotFound } from "../Exceptions/ResourceNotFound.ts";
 
 
-//TODO:
-/**TODO:
- * 
- * READ
- * UPDATE
- * DELETE
- * 
- * 
- */
- async function addTransaction({categoryName ,amount ,description} :Transaction,  jwt:string) {
+
+ async function addTransaction({categoryName ,amount ,description, paymentMethod, paymentType, storeName} :Transaction,  jwt:string) {
 
     /**No need to check if the transaction is there as duplicate transaction should be allowed
      * Id is auto gen so it will never be the same
      */
  
 
-    if(!categoryName || !amount || !description ){
+    if(!categoryName || !amount || !description || !paymentMethod ||!paymentType ||!storeName){
         throw new ValidationError("Missing argument for transaction");
     }else if(amount < 0){
         throw new ValidationError("Amount must be greater than $0");
@@ -73,11 +65,15 @@ import { ResourceNotFound } from "../Exceptions/ResourceNotFound.ts";
     const {error:insertionError} = await supabase.from("Transaction").insert({
         user_id:userIdData?.id,
         amount:amountNum,
+        store_name:storeName,
+        payment_type:paymentType,
+        payment_method:paymentMethod,
         category_id: categoryId?.id,
-        description:"This was because there was no food",
-        date:new Date()
+        description:description,
+        date:new Date().toLocaleString()
     });
 
+    
     if(insertionError){
         console.error("Error inserting: " + insertionError.message);
         throw new DatabaseError("Failed adding transaction to db, please try again " + insertionError.details);
@@ -217,4 +213,55 @@ async function deleteTransaction(jwt:string, transactionId:string){
     } 
 }
 
-export { addTransaction , getAllTransactions, updateTransaction, deleteTransaction}
+
+/**Refactor use supabase docs to do a Join between transaction table and Category table to retrieve:
+ * Amount
+ * Description
+ * CategoryName
+ */
+
+async function weeklyTransactionsRetrieval(jwt :string){
+    /*retrieve the user */
+
+    const {data:{user}} = await supabase.auth.getUser(jwt);
+    const userAuthId = user?.id
+
+
+    console.log("Got here ")
+    /*Server to compute dates instead of user query */
+  const startDate = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toLocaleDateString();
+  const endDate = new Date().toLocaleDateString();
+
+
+
+    //retrieve the user Id
+    const {data:userData, error:userError} = await supabase.from("Users").select('id').eq('auth_Id', userAuthId).single()
+
+    if(userError){
+        throw new DatabaseError("Failed to retrieve user information")
+    }
+   const userId = userData?.id;
+
+   const {data:transactionData, error:transactionError} = await supabase.from("Transaction").select(`store_name, payment_method,payment_type, amount,description,date, Category(name)`)
+   .eq('user_id',userId)
+   .gte('date', startDate)
+   .lte('date', endDate);
+
+   if(transactionError){
+    throw new DatabaseError("Failed to retrieve transactions between : " +startDate + " and " +endDate)
+   }
+    
+   const cleanedData = transactionData.map(transaction =>({
+    store:transaction.store_name,
+    paymentMethod:transaction.payment_method,
+    paymentType:transaction.payment_type,
+    amount:transaction.amount,
+    description:transaction.description,
+    date:transaction.date,
+    category:transaction.Category?.name
+   }))
+return cleanedData;
+
+}
+
+export { addTransaction , getAllTransactions, updateTransaction, deleteTransaction, weeklyTransactionsRetrieval}
