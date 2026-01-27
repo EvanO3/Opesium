@@ -4,6 +4,7 @@ import dotenv from "dotenv";
 import AuthRouter from "./Routes/AuthRouter"
 import TransactionRouter from "./Routes/TransactionRouter";
 import CategoryRouter from "./Routes/CategoryRouter";
+import InsightRouter from "./Routes/InsightRouter"
 dotenv.config();
 
 const supabaseUrl: string | undefined = process.env.SUPABASE_URL;
@@ -20,7 +21,8 @@ app.get("/", (req: Request, res: Response) => {
 app.use(express.json())
 app.use("/api/v1", AuthRouter.router)
 app.use("/api/v1", TransactionRouter.router)
-app.use("/api/v1/", CategoryRouter.router)
+app.use("/api/v1", CategoryRouter.router)
+app.use("/api/v1", InsightRouter.router)
 
 async function testDBConnection(): Promise<boolean> {
   try {
